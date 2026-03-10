@@ -42,8 +42,8 @@ class AIClassifier:
 {
     "severity": "critical|high|medium|low",
     "threat_classification": "specific_threat_type",
-    "recommended_action": "specific action to take",
-    "summary": "brief description of the threat"
+    "recommended_action": "specific action to take", // in zh-TW
+    "summary": "brief description of the threat" // in zh-TW
 }
 
 確保 JSON 有效且包含所有必填欄位。"""
@@ -103,8 +103,16 @@ class AIClassifier:
     def _parse_ai_response(self, response: str) -> TriageReport:
         """將 AI 回應解析為 TriageReport 結構"""
         try:
-            # 嘗試從回應中提取 JSON
-            response_data = json.loads(response.strip())
+            # Strip markdown code fences (e.g. ```json ... ```) before parsing
+            stripped = response.strip()
+            if stripped.startswith("```"):
+                lines = stripped.splitlines()
+                # Drop first line (``` or ```json) and last line (```)
+                inner_lines = lines[1:] if lines[-1].strip() == "```" else lines[1:]
+                if inner_lines and inner_lines[-1].strip() == "```":
+                    inner_lines = inner_lines[:-1]
+                stripped = "\n".join(inner_lines)
+            response_data = json.loads(stripped)
             
             # 驗證必填欄位
             required_fields = ["severity", "threat_classification", "recommended_action", "summary"]

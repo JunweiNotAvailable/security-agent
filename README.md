@@ -227,7 +227,3 @@ curl http://localhost:8000/health
 3. 如需要，更新 `main.py` 中的 API 端點
 4. 為新功能新增測試
 5. 使用新的配置選項或 API 變更更新此 README
-
-## 授權
-
-此專案是漢昕科技業務持續運算系統（BCCS）架構的一部分。

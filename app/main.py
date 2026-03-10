@@ -6,8 +6,11 @@ FastAPI 應用程式進入點
 import json
 import logging
 from datetime import datetime
+from pathlib import Path
 from fastapi import FastAPI, Request, HTTPException
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, FileResponse
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from pydantic import ValidationError
 
 from .models import SecurityAlert, TriageReport
@@ -33,6 +36,20 @@ app = FastAPI(
     version="1.0.0"
 )
 
+# 添加 CORS 中介軟體以支援前端
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # 在生產環境中應該限制為特定來源
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# 掛載靜態檔案目錄（展示頁面）— 使用 CRA 建置輸出
+demo_path = Path(__file__).parent.parent / "demo" / "build"
+if demo_path.exists():
+    app.mount("/demo", StaticFiles(directory=str(demo_path), html=True), name="demo")
+
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
     """未處理錯誤的全域例外處理器"""
@@ -47,7 +64,11 @@ async def global_exception_handler(request: Request, exc: Exception):
 
 @app.get("/")
 async def root():
-    return {"message": "AI 安全警報分類系統"}
+    return {
+        "message": "AI 安全警報分類系統",
+        "demo_url": "/demo/index.html",
+        "api_docs": "/docs"
+    }
 
 @app.get("/health")
 async def health_check():
